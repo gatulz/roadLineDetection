@@ -13,7 +13,7 @@
 #include <opencv2/photo.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#define recording 1
+#define recording 0
 #define debuggingMode 1
 #define isiArray 0
 //#define CV_CHAIN_APPROX_NONE cv::CHAIN_APPROX_NONE
@@ -191,7 +191,7 @@ int main() {
 
 	//------ akses video ---------
 	//VideoCapture cap("tes2.mp4"); //Video Kamera TA
-	VideoCapture cap("23juli/miringkanan_2.mp4"); //Video bagus dari yutup
+	VideoCapture cap("23juli/jalan_2.mp4");//miringkanan_2.mp4"); //Video bagus dari yutup
 	//VideoCapture cap("/home/autodrive/IMG_1139.MOV"); //Video kamera iPhone8plus
 	//VideoCapture cap("C:/Users/user/Desktop/multilinegambar/zebra2.mp4"); punya ka rumaisha
 
@@ -212,7 +212,7 @@ int main() {
 
 
 	// ----- membuat video output ------ //NAMAFILE
-	VideoWriter video("23juli_miringkanan_2.avi", CV_FOURCC('M', 'J', 'P', 'G'), 30, Size(frame_width, frame_height));	//extra
+	VideoWriter video("23juli_jalan_22.avi", CV_FOURCC('M', 'J', 'P', 'G'), 30, Size(frame_width, frame_height));	//extra
 
 	while (1) {
 
@@ -256,7 +256,7 @@ int main() {
 		int temp1;
 		int colsH[5];
 		int kosong[5] = { 0,0,0,0,0 };
-		int h = imgOriginal.rows*0.88;//0.986, / 1.3;  //titik ketinggian garis merah varH
+		int h = imgOriginal.rows*0.94;//0.986, 0.88;  //titik ketinggian garis merah varH
 		int h2 = imgOriginal.rows * 0.7;
 		int h3 = imgOriginal.rows * 0.6;
 		int Last_ref_titik_tengah=0;
@@ -370,7 +370,9 @@ int main() {
 			if (pointcount > lastpointcount) {
 				Max_pointcount = pointcount; //jumlah maximum titik tiap garis
 				lastpointcount = pointcount;
-				FirstMax_pointcount = baris_garis; //jumlah garis
+				FirstMax_pointcount = baris_garis; 
+
+				//cout << "First_Max_pointcount :=" << FirstMax_pointcount << endl;
 
 				FirstMax_y = y;
 			}
@@ -433,13 +435,14 @@ int main() {
 		*/
 
 		//+++++++++++++ Verifikasi ke atas +++++++++++++
-		for (int i = FirstMax_pointcount - 1; i >= 0; i--) {
+		for (int i = FirstMax_pointcount ; i >= 0; i--) {
 			for (int y = 1; y < Max_pointcount + 1; y++) {
+				cout << i << y << endl;
+				if (array_titik[i+1 ][y].x > 0 && array_titik[i+1][y].x < 2000) {
 
-				if (array_titik[i + 1][y].x > 0 && array_titik[i + 1][y].x < 2000) {
-
-					//selisih nilai x sekarang dan sebelumnya 
-					if (abs(array_titik[i][y].x - array_titik[i + 1][y].x) > 51) {//80
+					//selisih nilai x sekarang dan dibawahnya
+					if (abs(array_titik[i][y].x - array_titik[i + 1][y].x) > 31) {//80
+						cout << "atas_geser" << i << " - x : " << array_titik[i][y].x <<" - x : " << array_titik[i+1][y].x << endl;
 						//proses pindah (geser) posisi 
 						for (int z = Max_pointcount; z >= y; z--) {
 							array_titik[i][z + 1] = array_titik[i][z];
@@ -489,7 +492,7 @@ int main() {
 						}
 					}
 					if (atas_n > 0 ) {
-						hitungRegresi(array_titik, i, atas_1, atas_n, line1_regA, line1_regB); // regresi 4 titik
+						hitungRegresi(array_titik, y, atas_1, atas_n, line1_regA, line1_regB); // regresi 4 titik
 						//Hitung_AB(array_titik[atas_1][y], array_titik[atas_2][y], line1_regA, line1_regB);
 
 						if (line1_regB != 0) { //line1_regA != 0 && line1_regB != 0) {
@@ -525,14 +528,25 @@ int main() {
 		}
 
 		//+++++++++++++ Verifikasi ke bawah +++++++++++++
-		for (int i = FirstMax_pointcount + 1; i < baris_garis; i++) {
+		for (int i = FirstMax_pointcount ; i <= baris_garis; i++) {
+		//for (int i = baris_garis; i >= FirstMax_pointcount + 1; i--) {
 			for (int y = 1; y < Max_pointcount + 1; y++) {
 
-				if (array_titik[i - 1][y].x > 0 && array_titik[i - 1][y].x < 2000) { //untuk membatasi supaya ga sampe nilai +/-89xxxxx 
+				if (array_titik[i-1][y].x > 0 && array_titik[i-1][y].x < 2000) { //untuk membatasi supaya ga sampe nilai +/-89xxxxx 
 
-					//selisih nilai x sekarang dan sebelumnya 
-					if (abs(array_titik[i][y].x - array_titik[i - 1][y].x) > 51) { //80
+					//selisih nilai x sekarang dan diatasnya
+					if (abs(array_titik[i][y].x - array_titik[i - 1][y].x) > 51 && 
+						abs(array_titik[i][y].x - array_titik[i + 1][y].x) <= 51) { //80
 						//proses pindah (geser) posisi 
+
+						cout << "bawah-1_geser" << i << " - x : " << array_titik[i][y].x << endl;
+						for (int z = Max_pointcount; z >= y; z--) {
+							array_titik[i-1][z + 1] = array_titik[i-1][z];
+							array_titik[i-1][z] = Point(0, 0);
+						}
+					}
+					else if (abs(array_titik[i][y].x - array_titik[i - 1][y].x) > 51) {
+						cout << "bawahi_geser" << i << " - x : " << array_titik[i][y].x << endl;
 						for (int z = Max_pointcount; z >= y; z--) {
 							array_titik[i][z + 1] = array_titik[i][z];
 							array_titik[i][z] = Point(0, 0);
@@ -548,9 +562,9 @@ int main() {
 					jika nilai hasil regresi adalah nol, maka yang digunakan nilai regresi yang terakhir sebelum nol
 				*/
 
-				else
+				else // jika nilai x array_titik diatasnya 0,0
 				{
-					int atas_1 = 0, atas_2 = 0, bawah_1 = 0, bawah_2 = 0;
+					int bawah_1 = 0, bawah_2 = 0;
 					int index_bawah = 3, bawah_n = 0; //bawah_6
 
 					//cari atas_1 (misal titik sebelumnya [i-1] bernilai nol, maka akan dicari nilai di atasnya yang tidak nol)
@@ -576,7 +590,7 @@ int main() {
 						if (array_titik[a][y].y > 0) {
 							n++;
 							bawah_n = a;
-							if (n == index_bawah) {// n+1 titik terbawah garis
+							if (n == index_bawah) {// max index = index_bawah diatas titik terbawah pada garis
 								break;
 							}
 						}
@@ -584,9 +598,9 @@ int main() {
 
 					if (bawah_n > 0) {
 						//Hitung_AB(array_titik[bawah_1][y], array_titik[bawah_2][y], line1_regA, line1_regB);
-						hitungRegresi(array_titik, i, bawah_1, bawah_n, line1_regA, line1_regB); // regresi 4 titik
+						hitungRegresi(array_titik, y, bawah_n, bawah_1, line1_regA, line1_regB); // regresi 4 titik
 
-						if (line1_regA != 0 && line1_regB != 0) {
+						if (line1_regB != 0) {
 							regresi_cek.y = array_titik[i][y].y;
 							regresi_cek.x = (regresi_cek.y - line1_regA) / line1_regB;
 						}
@@ -730,9 +744,9 @@ int main() {
 			for (int k = 0; k < baris_garis + 1; k++) {
 				for (int i = 1; i < 5; i++) {
 					cout << array_titik[k][i] << "    ";
-					if (array_titik[k][i] != Point(0, 0)) {
+					/*if (array_titik[k][i] != Point(0, 0)) {
 						Max_pointcount = i;
-					}
+					}*/
 				}
 				cout << endl;
 			}
@@ -867,7 +881,7 @@ int main() {
 		
 		
 
-		if (debuggingMode == 1) {
+		/*if (debuggingMode == 1) {
 			cout << "===== SESUDAH REVISI =====" << endl;
 
 			for (int k = 0; k < baris_garis + 1; k++) {
@@ -879,7 +893,7 @@ int main() {
 
 			cout << "Max_pointcount =" << Max_pointcount << endl;
 			cout << "===========================" << endl;
-		}
+		}*/
 
 		//===================================== Hitung Error ===========================================
 		
@@ -1022,8 +1036,8 @@ int main() {
 		}
 
 		Last_ref_titik_tengah = ref_titik_tengah;
-		/*if (abs(error - prevError) > 150)
-			error = prevError;*/
+		if (abs(error - prevError) > 100)
+			error = prevError;
 		//error = 0.4 * error + 0.6 * prevError;
 		//Titik Tengah
 		line(imgOriginal, Point(imgOriginal.cols / 2, h), Point(imgOriginal.cols / 2, h), Scalar(255, 255, 255), 8);
