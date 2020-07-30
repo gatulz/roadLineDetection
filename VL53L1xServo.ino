@@ -10,7 +10,7 @@ range readings are in units of mm.
 VL53L1X sensor;
 Servo servo;
 int maxAngle= 85; //65
-int inAngle = 6; //35
+int inAngle = 68; //35
 int dist_cos;
 int dist_sin;
 int servo_position = 0;
@@ -32,7 +32,8 @@ void setup()
   Wire.begin();
   Wire.setClock(400000); // use 400 kHz I2C
   servo.attach(9);
-  sensor.setTimeout(0);
+//  servo.write(0);
+  sensor.setTimeout(50);
   if (!sensor.init())
   {
     Serial.println("Failed to detect and initialize sensor!");
@@ -57,17 +58,17 @@ void loop()
 {
   int dist;
   // Perhitungan Jarak Sensor VL53L1x
-  dist = sensor.read();
-  dist_cos=  int (dist * cos(abs(servo_position-85)/57.2958));
-  dist_sin = int (dist * sin(abs(servo_position-85)/57.2958));
-
-if ((dist_cos<nilaiMin)&&(dist_cos>30)&&(dist_sin<=90))
-{
-  Xmin = dist_sin;
-  nilaiMin = dist_cos;
-  realDist = dist;
-  posisiServo = servo_position-85;
-}
+//  dist = sensor.read();
+//  dist_cos=  int (dist * cos(abs(servo_position-85)/57.2958));
+//  dist_sin = int (dist * sin(abs(servo_position-85)/57.2958));
+//
+//if ((dist_cos<nilaiMin)&&(dist_cos>30)&&(dist_sin<=90))
+//{
+//  Xmin = dist_sin;
+//  nilaiMin = dist_cos;
+//  realDist = dist;
+//  posisiServo = servo_position-85;
+//}
 
   //Gerak Servo dalam Millis
   if (millis () - ts >= DELAY)
@@ -78,7 +79,19 @@ if ((dist_cos<nilaiMin)&&(dist_cos>30)&&(dist_sin<=90))
     ts = millis() ;   // setup timestamp for next time.
     if (forward)
     {
+
       servo.write (-- servo_position) ;  // progress the servo
+      dist = sensor.read();
+      dist_cos=  int (dist * cos(abs(servo_position-85)/57.2958));
+      dist_sin = int (dist * sin(abs(servo_position-85)/57.2958));
+
+      if ((dist_cos<nilaiMin)&&(dist_cos>30)&&(dist_sin<=90))
+      {
+        Xmin = dist_sin;
+        nilaiMin = dist_cos;
+        realDist = dist;
+        posisiServo = servo_position-85;
+      }
       if (servo_position == inAngle) // test for reverse
       {
         forward = false ;
@@ -97,6 +110,17 @@ if ((dist_cos<nilaiMin)&&(dist_cos>30)&&(dist_sin<=90))
     else
     {
       servo.write (++ servo_position) ;  // progress the servo
+      dist = sensor.read();
+      dist_cos=  int (dist * cos(abs(servo_position-85)/57.2958));
+      dist_sin = int (dist * sin(abs(servo_position-85)/57.2958));
+
+      if ((dist_cos<nilaiMin)&&(dist_cos>30)&&(dist_sin<=90))
+      {
+        Xmin = dist_sin;
+        nilaiMin = dist_cos;
+        realDist = dist;
+        posisiServo = servo_position-85;
+      }
       if (servo_position == maxAngle)  // test for reverse
       {
         forward = true ;
