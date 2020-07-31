@@ -1,0 +1,95 @@
+error_0 (folder 29juli)
+colsH :54       -       605
+lebar jalan = 551
+error 2 garis : 551
+error = 9
+-0.675051       0.603728
+
+error+10 
+colsH :28       -       610
+lebar jalan = 582
+error 2 garis : 582
+error = -1
+-0.636665       0.65613
+
+error+20
+colsH :13       -       600
+lebar jalan = 587
+error 2 garis : 587
+error = -14
+-0.600054       0.724675
+
+error+30
+colsH :-8       -       560
+lebar jalan = 568
+error garis kiri0
+error = -328
+-0.535638       0.666927
+
+erro+40
+colsH :-26      -       533
+lebar jalan = 559
+error garis kiri0
+error = -346
+-0.5111 0.863469
+
+error+50
+colsH :-22      -       518
+lebar jalan = 540
+error garis kiri0
+error = -342
+-0.561315       0.954853
+
+error-10
+colsH :57       -       660
+lebar jalan = 603
+error 2 garis : 603
+error = 38
+-0.731415       0.555048
+
+error-20
+colsH :77       -       693
+lebar jalan = 616
+error 2 garis : 616
+error = 65
+-0.814587       0.522832
+
+error -30
+colsH :107      -       732
+lebar jalan = 625
+error 2 garis : 625
+error = 99
+-0.89163        0.480583
+
+error -40
+colsH :122      -       765
+lebar jalan = 643
+error 2 garis : 643
+error = 123
+-0.888737       0.452136
+
+error -50
+colsH :132      -       778
+lebar jalan = 646
+error 2 garis : 646
+error = 135
+-1.05372        0.428261
+
+
+error +80
+colsH :-136     -       385
+lebar jalan = 521
+error garis kiri0
+error = -456
+-0.473183       1.4456
+107.324
+
+error -80
+colsH :171      -       802
+lebar jalan = 631
+error 2 garis : 631
+error = 166
+-1.52989        0.387614
+-106.281
+
+

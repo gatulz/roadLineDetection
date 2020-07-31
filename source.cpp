@@ -13,9 +13,10 @@
 #include <opencv2/photo.hpp>
 #include <opencv2/imgcodecs.hpp>
 
-#define recording 1
+#define recording 0
 #define debuggingMode 1
 #define isiArray 0
+
 //#define CV_CHAIN_APPROX_NONE cv::CHAIN_APPROX_NONE
 //#define CV_RETR_LIST cv::RETR_LIST
 //#define CV_AA Core.LINE_AA
@@ -193,8 +194,8 @@ int main() {
 
 	//------ akses video ---------
 
-	VideoCapture cap("23juli/jalan_2.mp4"); 
-	//VideoCapture cap("23juli/miringkanan_2.mp4");
+	//VideoCapture cap("23juli/jalan_2.mp4"); 
+	VideoCapture cap("23juli/miringkanan_2.mp4");
 	//VideoCapture cap("29juli2/jalan2.mp4");//miringkanan_2.mp4"); //Video bagus dari yutup
 	//VideoCapture cap("/home/autodrive/IMG_1139.MOV"); //Video kamera iPhone8plus
 	//VideoCapture cap("C:/Users/user/Desktop/multilinegambar/zebra2.mp4"); punya ka rumaisha
@@ -221,11 +222,12 @@ int main() {
 	while (1) {
 
 		//----- Akses Video ----
-		cap >> imgOriginal;
+		//cap >> imgOriginal;
 		//------- Akses Gambar -----
-		
-		//imgOriginal = imread("screenshot/1/-50.jpg");
-		//imgOriginal = imread("29juli2/ERROR_-50_3.jpg");
+
+		imgOriginal = imread("29juli/ERROR-80.jpg");
+		//imgOriginal = imread("29juli2/ERROR_+50_1.jpg");
+		//imgOriginal = imread("29juli3/0.jpg");
 		resize(imgOriginal, imgOriginal, Size(640, 480));
 
 		//Atur parameter HSV dengan taskbar
@@ -237,7 +239,7 @@ int main() {
 		//========== VARIABEL IMAGE ==========
 		int imgrows = imgOriginal.rows;
 		int imgcols = imgOriginal.cols;
-		int imgrowshalf = 0.56 * imgOriginal.rows; //extra //0.7
+		int imgrowshalf = 0.65 * imgOriginal.rows; // 0.61 * imgOriginal.rows; //extra //0.7
 
 
 		//========== VARIABEL SORTED ARRAY ==========
@@ -259,8 +261,9 @@ int main() {
 		int temp;
 		int temp1;
 		int colsH[5];
+		double regB[5];
 		int kosong[5] = { 0,0,0,0,0 };
-		int h = imgOriginal.rows*0.75;// 0.94;//0.986, 0.88;  //titik ketinggian garis merah varH
+		int h = imgOriginal.rows * 0.97;// 75;// 0.94;//0.986, 0.88;  //titik ketinggian garis merah varH
 		int h2 = imgOriginal.rows * 0.7;
 		int h3 = imgOriginal.rows * 0.6;
 		int Last_ref_titik_tengah=0;
@@ -308,7 +311,7 @@ int main() {
 		{
 			Scalar color = Scalar(255);
 			//ukuran minimum dan maksimum "filter area"
-			if ((contourArea(contours[i]) > 500) && (contourArea(contours[i]) < 8000)) //500 - 8000 100 - 10000
+			if ((contourArea(contours[i]) > 100) && (contourArea(contours[i]) < 8000)) //500 - 8000 100 - 10000
 			{
 				drawContours(imgResultArea, contours, i, color, FILLED);
 			}
@@ -373,7 +376,7 @@ int main() {
 
 			//menentukan nilai Maximum kolom
 			if (pointcount > lastpointcount) {
-				Max_pointcount = pointcount; //jumlah maximum titik tiap garis
+				Max_pointcount = pointcount; //index titik pertama terbanyak pada tiap garis
 				lastpointcount = pointcount;
 				FirstMax_pointcount = baris_garis; 
 
@@ -801,8 +804,8 @@ int main() {
 		
 		
 		*/
-		
-		if (isiArray == 1) {
+		/*
+		if (isiArray == 1) { // GA PERLU 
 			for (int i = 1; i <= Max_pointcount; i++) { //iterasi jumlah garis
 				int bawah_1 = 0, bawah_2 = 0, bawah_n = 0;
 				int index_bawah = 4; //bawah_6
@@ -851,23 +854,6 @@ int main() {
 					}
 				}
 
-				/*hitungRegresi(array_titik, i, bawah_2, bawah_1, line1_regA, line1_regB);
-				cout << "21 - REGA : " << line1_regA << "REGB : " << line1_regB << endl;
-				array_titik[24][i].x = (array_titik[24][i].y - line1_regA) / line1_regB;
-				cout << "x : " << array_titik[24][i].x << "\t y : " << array_titik[24][i].y << endl;
-				hitungRegresi(array_titik, i, bawah_n, bawah_1, line1_regA, line1_regB);
-				cout << "31 - REGA : " << line1_regA << "REGB : " << line1_regB << endl;
-				array_titik[24][i].x = (array_titik[24][i].y - line1_regA) / line1_regB;
-				cout << "x : " << array_titik[24][i].x << "\t y : " << array_titik[24][i].y << endl;
-				array_titik[24][i].x = 0;
-				hitungRegresi(array_titik, i, bawah_1-5, bawah_1, line1_regA, line1_regB);
-				cout << "61 - REGA : " << line1_regA << "REGB : " << line1_regB << endl;
-				array_titik[24][i].x = (array_titik[24][i].y - line1_regA) / line1_regB;
-				cout << "x : " << array_titik[24][i].x << "\t y : " << array_titik[24][i].y << endl;
-				array_titik[24][i].x = 0;
-				Hitung_AB(array_titik[bawah_1][i], array_titik[bawah_2][i], line1_regA, line1_regB);
-				*/
-
 				hitungRegresi(array_titik, i, bawah_n, bawah_1, line1_regA, line1_regB);
 				//cout << "ASLI - REGA : " << line1_regA << "\tREGB : " << line1_regB << endl;
 
@@ -883,7 +869,7 @@ int main() {
 
 			}
 		}
-		
+		*/
 		
 
 		/*if (debuggingMode == 1) {
@@ -961,6 +947,7 @@ int main() {
 			hitungRegresi(array_titik, i, bawah_n, temp1, line1_regA, line1_regB);
 			regresi_cek.y = h;
 			regresi_cek.x = (regresi_cek.y - line1_regA) / line1_regB;
+			regB[i] = line1_regB;
 
 			colsH[i] = regresi_cek.x;	//nilai x di garis putih di titik h
 		}
@@ -999,7 +986,8 @@ int main() {
 		prevRefSusur = ref_susur;
 		//Error Dua Garis
 		if (temp_garis > 1) {
-			if (!(kosong[temp_garis]==0 ^ kosong[temp_garis-1] == 0) ){//colsH[temp_garis] > 0 && colsH[temp_garis - 1] > 0) {//
+			if (colsH[temp_garis] > 0 && colsH[temp_garis - 1] > 0 && colsH[temp_garis] <1000 && colsH[temp_garis - 1] <1000) {
+				//!(kosong[temp_garis]==0 ^ kosong[temp_garis-1] == 0) ){////
 
 				ref_titik_tengah = colsH[temp_garis - 1] + ((colsH[temp_garis] - colsH[temp_garis - 1]) / 2);
 
@@ -1061,14 +1049,16 @@ int main() {
 		}
 		
 		Last_ref_titik_tengah = ref_titik_tengah;
-		error_f = 0;// error * 250;// / lebarJalan;
-		//if (abs(error - prevError) > 150) // dipakai saat sample video
-		//	error = prevError;
+		error_f = ((regB[temp_garis]+ regB[temp_garis-1] + 0.0901)/0.0099);// error * 250;// / lebarJalan;
+		if ((error) < -500 || error>500) // dipakai saat sample video
+			error = prevError;
 
 		//Titik Tengah
 		line(imgOriginal, Point(imgOriginal.cols / 2, h), Point(imgOriginal.cols / 2, h), Scalar(255, 255, 255), 8);
 
 		cout << "error = " << error << endl;
+		cout << regB[temp_garis-1] << "\t" << regB[temp_garis] << endl;
+		cout << error_f << endl;
 		//Print nilai error 
 		putText(imgOriginal, "error :" + std::to_string(error), Point(240, h),FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 		putText(imgOriginal, "ref_tengah :" + std::to_string(ref_titik_tengah), Point(240, h - 40), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
@@ -1078,17 +1068,20 @@ int main() {
 		putText(imgOriginal, "LebarJalan :" + std::to_string(lebarJalan), Point(240, h - 160), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 
 		putText(imgOriginal, "susurTest :" + std::to_string(susurTest), Point(240, h - 200), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
+
+		putText(imgOriginal, "test :" + std::to_string((error_f)), Point(240, h - 240), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 		//================================================================================================================================//
 
 
 		resize(imgOriginal, imgResized, Size(640, 480));
 		//imshow("imgResized", imgResized);
 		//imshow("Thresholded", imgThresholded);
-		imshow("imgContour area", imgHasil);
+		//imshow("imgContour area", imgHasil);
 		imshow("imgOriginal", imgOriginal);
 
 		// ----- membuat video output ------
-		video.write(imgOriginal); //extra
+		if (recording)
+			video.write(imgOriginal); //extra
 
 
 		char key = waitKey(33);
