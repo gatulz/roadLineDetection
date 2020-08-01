@@ -64,7 +64,7 @@ error = 99
 error -40
 colsH :122      -       765
 lebar jalan = 643
-error 2 garis : 643
+error 2 garis : 643 
 error = 123
 -0.888737       0.452136
 
