@@ -1,0 +1,144 @@
+ h1 = 0.97, h2 = 0.75
+ 
+-10 (0)
+colsH :55       -       527
+colsH2 :153     -       445
+lebar jalan = 472 (1)
+lebarjalan H2 = 292 (2)
+error 2 garis : 472
+error = -29 (3)
+errorh2 = 21 (4)
+-1.08387 (5)       1.28571 (6)
+9.76418 (7)
+
+-20
+ lebar garis = 22
+kiri
+kanan
+kiri
+colsH :31       -       508
+colsH2 :139     -       435
+lebar jalan = 477
+lebarjalan H2 = 296
+error garis kanan : 0
+error = 188
+errorh2 = 33
+-0.990356       1.38189
+16.1082
+
+-30
+colsH :10       -       489
+colsH2 :126     -       424
+lebar jalan = 479
+lebarjalan H2 = 298
+error garis kanan : 0
+error = 169
+errorh2 = 45
+-0.947054       1.63187
+25.9169
+
+-40
+colsH :-11      -       470
+colsH2 :114     -       412
+lebar jalan = 481
+lebarjalan H2 = 298
+error garis kanan : 0
+error = 150
+errorh2 = 57
+-0.863469       1.95283
+39.4469
+
+0 (referensi)
+colsH :60       -       552
+colsH2 :162     -       460
+lebar jalan = 492
+lebarjalan H2 = 298
+error garis kanan : 234
+error = -2
+errorh2 = 9
+-1.0576 1.125
+5.26744
+
+(248, 215,222) (HSV LOW)
+colsH :63       -       552
+colsH2 :164     -       460
+lebar jalan = 489
+lebarjalan H2 = 296
+error garis kanan : 245
+error = -13
+errorh2 = 8
+-1.10121        1.08387
+2.43334
+
+
+23juli_error_1
+colsH :65       -       550
+colsH2 :163     -       458
+lebar jalan = 485
+lebarjalan H2 = 295
+error 2 garis : 485
+error = -13
+errorh2 = 10
+-1.16824        1.09691
+0.627705
+
+
++10
+colsH :91       -       568
+colsH2 :178     -       471
+lebar jalan = 477
+lebarjalan H2 = 293
+error 2 garis : 477
+error = 9
+errorh2 = -4
+-1.18339        1.125
+1.0605
+
++20
+colsH :110      -       586
+colsH2 :192     -       483
+lebar jalan = 476
+lebarjalan H2 = 291
+error 2 garis : 476
+error = 28
+errorh2 = -17
+-1.29916        1.0578
+-5.05901
+
++30
+colsH :122      -       603
+colsH2 :201     -       493
+lebar jalan = 481
+lebarjalan H2 = 292
+error 2 garis : 481
+error = 42
+errorh2 = -27
+-1.31105        0.977799
+-8.13228
+
++40
+colsH :143      -       624
+colsH2 :213     -       505
+lebar jalan = 481
+lebarjalan H2 = 292
+error 2 garis : 481
+error = 63
+errorh2 = -39
+-1.53169        0.899281
+-18.1374
+
++50
+colsH :165      -       637
+colsH2 :222     -       514
+lebar jalan = 472
+lebarjalan H2 = 292
+error 2 garis : 472
+error = 81
+errorh2 = -48
+-2.07173        0.890478
+-36.4935
+
+
+
+
+
