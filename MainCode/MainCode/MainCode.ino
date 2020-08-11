@@ -468,8 +468,6 @@ void pidKecPos(){
   threshold(&sp_vs, max_vs);
   
   err_v1 = sp_vs - v1;
-//  if (sp_vs==0 && err_v1==0)
-//    sumErrVel=0;
   if ( (Kpv*err_v1>-255)&& (Kpv*err_v1<255)){
     sumErrVel = sumErrVel + err_v1;
   }
