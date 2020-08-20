@@ -19,7 +19,7 @@ int jarakY;
 int nilaiMin;
 int Xmin;
 int realDist;
-int posisiServo; 
+int posisiServo;  
 int position = 0 ;    // state variable
 boolean forward = false ;   // state variable
 unsigned long ts2 = 0;
