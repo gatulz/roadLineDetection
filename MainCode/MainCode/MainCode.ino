@@ -271,6 +271,137 @@ void printData(){
   //Serial.print("\t_r: ");    Serial.println(pos0.lng),6); 
 }
 
+void pidKecepatan(){
+  
+  v2 = pos2 - last_pos2;
+  last_pos2 = pos2;
+  
+  err_vB1 = sp_v2 - v2;
+  if ( (err_vB1<-1*maxErrorV && sp_v2>0) || (err_vB1>maxErrorV && sp_v2<0) ){
+    pwmSpeed2 = 0;
+  } else {
+    if (sp_v2==0 && err_vB1==0)
+      sumErrVel2=0;
+    if ( (Kpv2*err_vB1>-maxThrottle)&& (Kpv2*err_vB1<maxThrottle)){
+      sumErrVel2 = sumErrVel2 + err_vB1;
+    }
+    //threshold(&sumErrVel2,(int) maxThrottle/(Kiv2*TS2));
+    int temp_Pi2 = (int)( Kiv2*TS2*sumErrVel2);
+    threshold(&temp_Pi2, maxThrottle);
+      
+    pwmSpeed2 = (int)(Kpv2*err_vB1 + temp_Pi2 + Kdv2*(err_vB1 - err_vB2)/TS2);
+    //if (pwmSpeed2>100){
+      pwmSpeed2 +=700;
+    //}
+  }
+  threshold(&pwmSpeed2,  maxThrottle);
+  err_vB2 = err_vB1;
+}
+
+void pidKecPos(){
+  v1 = pos1 - last_pos1;
+  last_v1 = v1;
+  last_pos1 = pos1;
+  
+  errPos = sp_pos - pos1;
+  sp_vs = Kpvs*errPos;
+  
+  if (pos1>schedule_pos || pos1<-1*schedule_pos)
+    max_vs = max_vs2;
+  else 
+    max_vs = max_vs1;
+  threshold(&sp_vs, max_vs);
+  
+  err_v1 = sp_vs - v1;
+  if ( (Kpv*err_v1>-255)&& (Kpv*err_v1<255)){
+    sumErrVel = sumErrVel + err_v1;
+  }
+  int temp_Pi = (int)( Kiv*TS*sumErrVel);
+  threshold(&temp_Pi, 255);
+    
+  pwmSpeed = (int)(Kpv*err_v1 + temp_Pi + Kdv*(err_v1 - err_v2)/TS);
+  threshold(&pwmSpeed, 250);
+  err_v2 = err_v1;
+}
+
+void pidPosisi(){
+  v1 = pos1 - last_pos1;
+  last_pos1 = pos1;
+  last_v1 = v1;
+  errPos = sp_pos - pos1;
+  if (Kps*errPos<255 && Kps*errPos>-255){
+    sumErrPos = sumErrPos + errPos;
+  }
+  
+  int temp_Pi = (int)( Kis*TS*sumErrPos);
+  threshold(&temp_Pi, 255);
+  
+  pwmPos = (int)(Kps*errPos + Kds*(errPos-lastErrPos)/TS);//temp_Pi + 
+  threshold(&pwmPos, 230);
+  lastErrPos = errPos;
+}
+
+void brakeSignal(){
+  if (manualMode==0){ //auto mode
+    if ((stopSign ==1) || (v2-sp_v2>=7)){// && (v1 - sp_vs)>30){
+      digitalWrite(brakeA, 1);
+      digitalWrite(brakeB, 1);
+  //  } else if ( (v1 - sp_vs)>20){ 
+  //    digitalWrite(brakeA, 1);
+  //    digitalWrite(brakeB, 0);
+  //  }  else if ( (v1 - sp_vs)>12){
+  //    digitalWrite(brakeA, 0);
+  //    digitalWrite(brakeB, 1);
+    } else {
+      digitalWrite(brakeA, 1);
+      digitalWrite(brakeB, 0);
+    }
+  } else { //manual mode
+      digitalWrite(brakeA, 0);
+      digitalWrite(brakeB, 0);
+  }
+}
+
+void controller(bool atas, bool bawah, bool kiri, bool kanan, bool rst){
+  if (!rst && millis()-lastButton>1500){ //for change from manual to auto
+    manualMode = !manualMode;
+    digitalWrite(revOFF, manualMode); //1:manual, 0:auto
+    digitalWrite(autoThrottle, manualMode);//manualMode); //1:manual 0:auto
+    pos1=0;// for reset posisition in middle
+    lastButton=millis();
+  }
+  if (!rst){
+    sp_v2 = 0;
+    sp_pos=0;
+  } else {
+    if (!atas){
+      sp_v2 = 15;
+      sp_pos = 0;
+    } else if (!bawah) {
+      sp_v2 = -15;
+      sp_pos = 0;
+    } else if (!kiri) {
+      sp_v2 = 7;
+      sp_pos = 1150;
+    } else if (!kanan) {
+      sp_v2 = 7;
+      sp_pos = -1150;
+    } else {
+      sp_v2=0;
+    }
+  }
+
+  //SAFETY MOTOR
+  if (pwmSpeed2>2200 && v2<5){
+    pwmSpeed2=0;
+    manualMode=1; //menjadi manual
+    sp_v2=0;
+  }
+    
+}
+
+
+
 void setup() {
   
   pinMode(speedON, OUTPUT);
@@ -423,134 +554,4 @@ void loop() {
 //  }
   
   
-}
-
-
-void pidKecepatan(){
-  
-  v2 = pos2 - last_pos2;
-  last_pos2 = pos2;
-  
-  err_vB1 = sp_v2 - v2;
-  if ( (err_vB1<-1*maxErrorV && sp_v2>0) || (err_vB1>maxErrorV && sp_v2<0) ){
-    pwmSpeed2 = 0;
-  } else {
-    if (sp_v2==0 && err_vB1==0)
-      sumErrVel2=0;
-    if ( (Kpv2*err_vB1>-maxThrottle)&& (Kpv2*err_vB1<maxThrottle)){
-      sumErrVel2 = sumErrVel2 + err_vB1;
-    }
-    //threshold(&sumErrVel2,(int) maxThrottle/(Kiv2*TS2));
-    int temp_Pi2 = (int)( Kiv2*TS2*sumErrVel2);
-    threshold(&temp_Pi2, maxThrottle);
-      
-    pwmSpeed2 = (int)(Kpv2*err_vB1 + temp_Pi2 + Kdv2*(err_vB1 - err_vB2)/TS2);
-    //if (pwmSpeed2>100){
-      pwmSpeed2 +=700;
-    //}
-  }
-  threshold(&pwmSpeed2,  maxThrottle);
-  err_vB2 = err_vB1;
-}
-
-void pidKecPos(){
-  v1 = pos1 - last_pos1;
-  last_v1 = v1;
-  last_pos1 = pos1;
-  
-  errPos = sp_pos - pos1;
-  sp_vs = Kpvs*errPos;
-  
-  if (pos1>schedule_pos || pos1<-1*schedule_pos)
-    max_vs = max_vs2;
-  else 
-    max_vs = max_vs1;
-  threshold(&sp_vs, max_vs);
-  
-  err_v1 = sp_vs - v1;
-  if ( (Kpv*err_v1>-255)&& (Kpv*err_v1<255)){
-    sumErrVel = sumErrVel + err_v1;
-  }
-  int temp_Pi = (int)( Kiv*TS*sumErrVel);
-  threshold(&temp_Pi, 255);
-    
-  pwmSpeed = (int)(Kpv*err_v1 + temp_Pi + Kdv*(err_v1 - err_v2)/TS);
-  threshold(&pwmSpeed, 250);
-  err_v2 = err_v1;
-}
-
-void pidPosisi(){
-  v1 = pos1 - last_pos1;
-  last_pos1 = pos1;
-  last_v1 = v1;
-  errPos = sp_pos - pos1;
-  if (Kps*errPos<255 && Kps*errPos>-255){
-    sumErrPos = sumErrPos + errPos;
-  }
-  
-  int temp_Pi = (int)( Kis*TS*sumErrPos);
-  threshold(&temp_Pi, 255);
-  
-  pwmPos = (int)(Kps*errPos + Kds*(errPos-lastErrPos)/TS);//temp_Pi + 
-  threshold(&pwmPos, 230);
-  lastErrPos = errPos;
-}
-
-void brakeSignal(){
-  if (manualMode==0){ //auto mode
-    if ((stopSign ==1) || (v2-sp_v2>=7)){// && (v1 - sp_vs)>30){
-      digitalWrite(brakeA, 1);
-      digitalWrite(brakeB, 1);
-  //  } else if ( (v1 - sp_vs)>20){ 
-  //    digitalWrite(brakeA, 1);
-  //    digitalWrite(brakeB, 0);
-  //  }  else if ( (v1 - sp_vs)>12){
-  //    digitalWrite(brakeA, 0);
-  //    digitalWrite(brakeB, 1);
-    } else {
-      digitalWrite(brakeA, 1);
-      digitalWrite(brakeB, 0);
-    }
-  } else { //manual mode
-      digitalWrite(brakeA, 0);
-      digitalWrite(brakeB, 0);
-  }
-}
-
-void controller(bool atas, bool bawah, bool kiri, bool kanan, bool rst){
-  if (!rst && millis()-lastButton>1500){ //for change from manual to auto
-    manualMode = !manualMode;
-    digitalWrite(revOFF, manualMode); //1:manual, 0:auto
-    digitalWrite(autoThrottle, manualMode);//manualMode); //1:manual 0:auto
-    pos1=0;// for reset posisition in middle
-    lastButton=millis();
-  }
-  if (!rst){
-    sp_v2 = 0;
-    sp_pos=0;
-  } else {
-    if (!atas){
-      sp_v2 = 15;
-      sp_pos = 0;
-    } else if (!bawah) {
-      sp_v2 = -15;
-      sp_pos = 0;
-    } else if (!kiri) {
-      sp_v2 = 7;
-      sp_pos = 1150;
-    } else if (!kanan) {
-      sp_v2 = 7;
-      sp_pos = -1150;
-    } else {
-      sp_v2=0;
-    }
-  }
-
-  //SAFETY MOTOR
-  if (pwmSpeed2>2200 && v2<5){
-    pwmSpeed2=0;
-    manualMode=1; //menjadi manual
-    sp_v2=0;
-  }
-    
 }

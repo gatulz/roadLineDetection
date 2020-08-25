@@ -190,6 +190,8 @@ void Hitung_AB(Point& line1, Point& line2, long double& regA, long double& regB)
 int main() {
 
 	int error = 0, prevError = 0, errorh2 = 0;
+	double errorH1Test = 0, lastErrorH1Test=0;
+	int lebarJalan = 0, lastLebarJalanH1 = 0;
 	float error_f = 0;
 	int susurTest = 0;
 
@@ -1081,13 +1083,19 @@ int main() {
 		}*/
 		//temp_garis = 3;
 		//if (array_titik[temp_garis][])
-		int lebarJalan = ((colsH[temp_garis] - colsH[temp_garis - 1]));
+		if (abs(lebarJalan) < 1500) {
+			lastLebarJalanH1 = lebarJalan;
+		}
+		lebarJalan = ((colsH[temp_garis] - colsH[temp_garis - 1]));
 		int lebarJalanH2 = ((colsH2[temp_garis] - colsH2[temp_garis - 1]));
 		int ref_tengahH2 = ((colsH2[temp_garis] + colsH2[temp_garis - 1]) / 2);
+		
 		cout << "colsH :" << colsH[temp_garis - 1] << "\t-\t" << colsH[temp_garis] << endl;
 		cout << "colsH2 :" << colsH2[temp_garis - 1] << "\t-\t" << colsH2[temp_garis] << endl;
 		cout << "lebarJalan = " << lebarJalan << endl; 
 		cout << "lebarJalan H2 = " << lebarJalanH2<< endl;
+		cout << "errorTest = " << errorH1Test << endl;
+		cout << "last_lebarJalan = " << lastLebarJalanH1 << endl;
 		//Titik Tengah
 		line(imgOriginal, Point(imgOriginal.cols / 2, h), Point(imgOriginal.cols / 2, h), Scalar(255, 255, 255), 8);
 
@@ -1114,6 +1122,9 @@ int main() {
 				}
 				error = ref_titik_tengah - (imgOriginal.cols / 2);
 
+				errorH1Test = ((imgOriginal.cols / 2) - colsH[temp_garis - 1]);
+				errorH1Test = 100*( errorH1Test/ lastlebarJalanH1 );
+
 				Last_ref_titik_tengah = ref_titik_tengah;
 				line(imgOriginal, Point(ref_titik_tengah, h), Point(ref_titik_tengah, 480), Scalar(0, 0, 255), 2);
 
@@ -1129,7 +1140,7 @@ int main() {
 				line(imgOriginal, Point(ref_titik_tengah, h), Point(ref_titik_tengah, 450), Scalar(255, 255, 0), 3);
 
 				error = ref_titik_tengah - imgOriginal.cols / 2;
-
+				errorH1Test = 100*((imgOriginal.cols / 2) - colsH[temp_garis - 1]) / lastLebarJalanH1;
 				cout << "error garis kiri" << ref_susur << endl;
 				//cout << "error garis kiri" << ref_susur << endl;
 			}
@@ -1141,6 +1152,7 @@ int main() {
 				line(imgOriginal, Point(ref_titik_tengah, h), Point(ref_titik_tengah, 450), Scalar(0, 255, 255), 3);
 
 				error = ref_titik_tengah - imgOriginal.cols / 2;
+				errorH1Test =  100*(1 - ( (colsH[temp_garis] - (imgOriginal.cols / 2)) / lastLebarJalanH1 ));
 
 				cout << "error garis kanan : " << ref_susur << endl;
 			}
@@ -1150,6 +1162,7 @@ int main() {
 				line(imgOriginal, Point(ref_titik_tengah, h), Point(ref_titik_tengah, h), Scalar(255, 255, 0), 3);
 
 				error = ref_titik_tengah - imgOriginal.cols / 2;
+				errorH1Test = lastErrorH1Test;
 
 				cout << "error kelebihan : " << error << endl;
 			}
@@ -1163,7 +1176,7 @@ int main() {
 				error = (colsH[temp_garis] - susurTest) - imgOriginal.cols / 2;
 			}
 		}
-		error = error * 250 / 480;
+		error = error * 250 / lastLebarJalanH1;
 
 		Last_ref_titik_tengah = ref_titik_tengah;
 		error_f = ((regB[temp_garis] + regB[temp_garis - 1] + 0.0901) / 0.0299); ///0.0099);// error * 250;// / lebarJalan;
@@ -1198,6 +1211,7 @@ int main() {
 		putText(imgOriginal, "LebarJalanH1 :" + std::to_string(lebarJalan), Point(240, h - 120), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 		putText(imgOriginal, "LebarJalanH2 :" + std::to_string(lebarJalanH2), Point(240, h - 160), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 		putText(imgOriginal, "susurTestH1 :" + std::to_string(320 - (colsH[temp_garis-1])), Point(240, h - 200), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
+		putText(imgOriginal, "errorH1Test :" + std::to_string(errorH1Test), Point(240, h - 240), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 
 		//putText(imgOriginal, "ref_tengah :" + std::to_string(ref_titik_tengah), Point(240, h - 40), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 		//putText(imgOriginal, "jml_garis :" + std::to_string(temp_garis), Point(240, h - 80), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
