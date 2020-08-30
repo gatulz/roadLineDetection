@@ -14,7 +14,7 @@
 #include <opencv2/imgcodecs.hpp>
 
 #define recording 1
-#define debuggingMode 1
+#define debuggingMode 0
 #define printThreshold 1 //print masking
 #define screenText 0
 
@@ -31,12 +31,26 @@ using namespace std;
 
 // ========== VARIABEL FILTER HSV ==========
 
-int HLow = 0;// 230;
-int HHigh = 255;
-int SLow = 0;
-int SHigh = 70; //nilai jenis pixel berwarna(255) atau hitam putih(0)
-int VLow = 156;// 236;
+int HLow = 10;// 230;
+int HHigh = 52;
+int SLow = 23;// 10;
+int SHigh = 255;// 70; //nilai jenis pixel berwarna(255) atau hitam putih(0)
+int VLow = 55;// 90;// 127;// 180;// 236; 180 156
 int VHigh = 255;
+int bb1 = 60;
+int bb2 = 123;
+//int ss1 = 30;
+//int ss2 = 100;
+//int vv1 = 151;
+//int vv2 = 255;
+
+//int bb1 = 223;
+//int bb2 = 255;
+int ss1 = 223;
+int ss2 = 255;
+int vv1 = 223;
+int vv2 = 255;
+
 //GARIS KUNING JALUR DI ITB
 //int HLow = 18;// 230;
 //int HHigh = 60;
@@ -49,10 +63,10 @@ int VHigh = 255;
 
 Point rook_points[4];
 
-int lebar_atas = 480;// 560;
+int lebar_atas = 600;// 480; //480-520
 int lebar_bawah = 640;
 int tinggi_bawah = 0;
-int tinggi_atas = 480 * (0.33);// 200;// 400;
+int tinggi_atas = 480 * 0.6;// 480 * (0.33);// 200;// 400;0.33
 
 
 //========== VARIABEL SEARCH LINE ==========
@@ -93,6 +107,22 @@ void Trackbar_HSV() {
 	createTrackbar("VLow", "Trackbar_HSV", &VLow, 255);
 	createTrackbar("VHigh", "Trackbar_HSV", &VHigh, 255);
 }
+
+
+void Trackbar_NEW() {
+
+	namedWindow("Trackbar_NEW", WINDOW_NORMAL);
+
+	createTrackbar("B", "Trackbar_NEW", &bb1, 255);
+	createTrackbar("B2", "Trackbar_NEW", &bb2, 255);
+
+	createTrackbar("S", "Trackbar_NEW", &ss1, 255);
+	createTrackbar("S2", "Trackbar_NEW", &ss2, 255);
+
+	createTrackbar("V", "Trackbar_NEW", &vv1, 255);
+	createTrackbar("V2", "Trackbar_NEW", &vv2, 255);
+}
+
 
 Mat masking(Mat param1, Mat imgPrint, bool print, int lebar_atas, int tinggi_bawah, int tinggi_atas, int lebar_bawah) {
 
@@ -195,8 +225,34 @@ void Hitung_AB(Point& line1, Point& line2, long double& regA, long double& regB)
 	}
 }
 
+
+double median(Mat channel)
+{
+	double m = (channel.rows * channel.cols) / 2;
+	int bin = 0;
+	double med = -1.0;
+
+	int histSize = 256;
+	float range[] = { 0, 256 };
+	const float* histRange = { range };
+	bool uniform = true;
+	bool accumulate = false;
+	Mat hist;
+	calcHist(&channel, 1, 0, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
+
+	for (int i = 0; i < histSize && med < 0.0; ++i)
+	{
+		bin += cvRound(hist.at< float >(i));
+		if (bin > m && med < 0.0)
+			med = i;
+	}
+
+	return med;
+}
+
 int main() {
 
+	int distToMid = 100, prevDistToMid=100;
 	int error = 0, prevError = 0, errorh2 = 0;
 	int lebarJalan = 0, lastLebarJalanH1 = 200;
 	float error_f = 0, roadPos = 0;
@@ -209,11 +265,12 @@ int main() {
 	//NAMAFILE
 	//VideoCapture cap("23juli/ERROR0_2.mp4"); 
 	//VideoCapture cap("23juli/jalan_4_lurus.mp4");
-	VideoCapture cap("video/23agus/lurus_kanan2.mp4");
-	//VideoCapture cap("video/23agus/kiri.mp4");
-
+	//VideoCapture cap("video/23agus/lurus_kanan3.mp4");
+	//VideoCapture cap("video/23agus/kiri1.mp4");
 	//VideoCapture cap("4agus/maju_lurus_1.mp4");
 	//VideoCapture cap("29juli2/jalan2.mp4");//miringkanan_2.mp4"); //Video bagus dari yutup
+	VideoCapture cap("kuning3.mp4");
+
 
 	// ----- akses video streaming -----//
 	//VideoCapture cap(0);
@@ -230,18 +287,22 @@ int main() {
 	VideoWriter video("4agus.avi", CV_FOURCC('M', 'J', 'P', 'G'), 30, Size(frame_width, frame_height));	//extra
 
 	while (1) {
-
+		Mat imgFrame;
 		//----- Akses Video ----
-		cap >> imgOriginal;
+		cap >> imgFrame;
 		//------- Akses Gambar -----
-		//imgOriginal = imread("jalan_itb.jpg");
+		//imgFrame = imread("kuning_gelap4.jpg");
 
 		i++;
-		i %= 5;
+		i %= 3;
 		if (i == 0) { //setiap 5 frame
 
 			// resize gambar agar ukuran 640x480
-			resize(imgOriginal, imgOriginal, Size(640, 480));
+			resize(imgFrame, imgFrame, Size(640, 480));
+
+			resize(imgFrame, imgOriginal, Size(640, 480));
+
+
 
 
 			//========== VARIABEL IMAGE ==========
@@ -264,7 +325,7 @@ int main() {
 			Point regresi_cek;
 			long double line1_regA, line1_regB, line2_regA, line2_regB;
 
-
+			
 			//========== ERROR ==========
 			int temp = 0, temp_belok = 0;
 			int temp1 = 0, temp1_belok = 0;
@@ -297,13 +358,13 @@ int main() {
 
 			//Atur parameter HSV dengan taskbar
 			Trackbar_HSV();
+			Trackbar_NEW();
 
 			//HSV Filter
 			Mat imgHSV, hsv1;
+
 			cvtColor(imgOriginal, hsv1, COLOR_BGR2HSV);
 			inRange(hsv1, Scalar(HLow, SLow, VLow), Scalar(HHigh, SHigh, VHigh), imgHSV);
-			//inRange(imgHSV, Scalar(HLow, SLow, VLow), Scalar(HHigh, SHigh, VHigh), imgOriginal);
-
 			//Mencari Contour		
 			std::vector<std::vector<cv::Point>> contours;
 			std::vector<std::vector<cv::Point>> contoursFiltered;
@@ -312,7 +373,7 @@ int main() {
 
 
 			//Moments Contour
-			vector<Moments> mu(contours.size()); 
+			vector<Moments> mu(contours.size());
 			vector<Rect> boundRect(contours.size());
 			for (int i = 0; i < contours.size(); i++) {
 				mu[i] = moments(contours[i], false);
@@ -326,8 +387,8 @@ int main() {
 				//boundRect[i] = boundingRect(contours[i]);
 				Scalar color = Scalar(255);
 				//ukuran minimum dan maksimum "filter area"
-				if ((contourArea(contours[i]) > 500) && (contourArea(contours[i]) < 7000 && 
-					(boundRect[i].width* boundRect[i].height < 7000)) )
+				if ((contourArea(contours[i]) > 500) && (contourArea(contours[i]) < 7000 &&
+					(boundRect[i].width * boundRect[i].height < 7000)))
 					//(boundRect[i].width<150 ^ boundRect[i].height <150)) //400 - 8000 100 - 10000
 				{
 					drawContours(imgResultArea, contours, i, color, FILLED);
@@ -338,7 +399,12 @@ int main() {
 			bitwise_and(imgHSV, imgResultArea, imgHasil);
 
 			Mat imgThresholded = Mat::zeros(Size(1080, 720), CV_8UC1);
+			imgThresholded = imgHasil.clone();
 			imgThresholded = masking(imgThresholded, imgHasil, printThreshold, lebar_atas, tinggi_bawah, tinggi_atas, lebar_bawah);
+
+
+
+
 
 
 
@@ -696,9 +762,9 @@ int main() {
 
 				totalTitik = 0;
 			}
-			
+
 			////+++++++++++++ Verifikasi ke bawah TAMBAHAN +++++++++++++
-			
+
 			//for (int i = 1; i <= baris_garis; i++) {
 			//	//for (int i = baris_garis; i >= FirstMax_pointcount + 1; i--) {
 			//	for (int y = 1; y < Max_pointcount + 1; y++) {
@@ -894,7 +960,7 @@ int main() {
 			}
 			jmlGaris = Max_pointcount;
 			cout << "Max_pointcount =" << Max_pointcount << endl;
-			
+
 
 
 			//Hitung lebar titik putih - garis jalan
@@ -1054,9 +1120,10 @@ int main() {
 
 
 			// untuk menentukan ada persimpangan jalan atau tidak
-			if ((colsH2[temp_garis] <= 0) && (colsH2[temp_garis - 1] <= 0) ){
+			if ((colsH2[temp_garis] <= 0) && (colsH2[temp_garis - 1] <= 0)) {
 				belokH2 = 3; //belok kanan 
-			} else if (colsH2[temp_garis] <=0) {
+			}
+			else if (colsH2[temp_garis] <= 0) {
 				belokH2 = 2; //belok kanan 
 			}
 			else if (colsH2[temp_garis - 1] <= 0) {
@@ -1069,12 +1136,12 @@ int main() {
 			//temp_garis = 3;
 			//if (array_titik[temp_garis][])
 
-			
 
-			
+
+
 			lebarJalan = ((colsH[temp_garis] - colsH[temp_garis - 1]));
 			int lebarJalanH2 = ((colsH2[temp_garis] - colsH2[temp_garis - 1]));
-			int ref_tengahH2 = ((colsH2[temp_garis] + colsH2[temp_garis - 1]) *trackTarget);
+			int ref_tengahH2 = ((colsH2[temp_garis] + colsH2[temp_garis - 1]) * trackTarget);
 			cout << "colsH :" << colsH[temp_garis - 1] << "\t-\t" << colsH[temp_garis] << endl;
 			cout << "colsH2 :" << colsH2[temp_garis - 1] << "\t-\t" << colsH2[temp_garis] << endl;
 			cout << "lebarJalan = " << lebarJalan << endl;
@@ -1084,63 +1151,63 @@ int main() {
 			prevRefSusur = ref_susur;
 			//Error Dua Garis
 			//if (temp_garis > 1) {
-				if (colsH[temp_garis] > 0 && colsH[temp_garis - 1] > 0 && colsH[temp_garis] <1000 && colsH[temp_garis - 1] <1000) {
-					//////!(kosong[temp_garis] == 0 ^ kosong[temp_garis - 1] == 0)) {//
-					if (abs(lebarJalan) < 1500 && lebarJalan > 250) {
-						lastLebarJalanH1 = lebarJalan;
-					}
-					ref_titik_tengah = colsH[temp_garis - 1] + ((colsH[temp_garis] - colsH[temp_garis - 1]) * trackTarget);
-
-					roadPos = 100 * ((imgOriginal.cols / 2) - colsH[temp_garis - 1]) / lastLebarJalanH1;
-					
-					ref_susur = colsH[temp_garis] - ref_titik_tengah;
-					if (susurTest == 0)
-						susurTest = ref_susur;
-					else if (abs(ref_susur - susurTest) <= 150) {
-						susurTest = (susurTest + ref_susur) / 2;
-					}
-					error = ref_titik_tengah - (imgOriginal.cols / 2);
-
-					Last_ref_titik_tengah = ref_titik_tengah;
-					line(imgOriginal, Point(ref_titik_tengah, h), Point(ref_titik_tengah, 480), Scalar(0, 0, 255), 2);
-
-
-					cout << "error 2 garis : " << (colsH[temp_garis] - colsH[temp_garis - 1]) << endl;
-
+			if (colsH[temp_garis] > 0 && colsH[temp_garis - 1] > 0 && colsH[temp_garis] < 1000 && colsH[temp_garis - 1] < 1000) {
+				//////!(kosong[temp_garis] == 0 ^ kosong[temp_garis - 1] == 0)) {//
+				if (abs(lebarJalan) < 1500 && lebarJalan > 250) {
+					lastLebarJalanH1 = lebarJalan;
 				}
+				ref_titik_tengah = colsH[temp_garis - 1] + ((colsH[temp_garis] - colsH[temp_garis - 1]) * trackTarget);
 
-				//Error Garis Kiri
-				else if (colsH[temp_garis] <= 0) {//kosong[temp_garis] == 1) {//
-					ref_susur = susurTest;
-					roadPos = 100 * ((imgOriginal.cols / 2) - colsH[temp_garis - 1]) / lastLebarJalanH1;
-					ref_titik_tengah = lastLebarJalanH1 - ref_susur + colsH[temp_garis - 1];  //**REVISI**
-					line(imgOriginal, Point(ref_titik_tengah, h), Point(ref_titik_tengah, 450), Scalar(255, 255, 0), 3);
+				roadPos = 100 * ((imgOriginal.cols / 2) - colsH[temp_garis - 1]) / lastLebarJalanH1;
 
-					error = ref_titik_tengah - imgOriginal.cols / 2;
-
-					cout << "error garis kiri" << ref_susur << endl;
+				ref_susur = colsH[temp_garis] - ref_titik_tengah;
+				if (susurTest == 0)
+					susurTest = ref_susur;
+				else if (abs(ref_susur - susurTest) <= 150) {
+					susurTest = (susurTest + ref_susur) / 2;
 				}
+				error = ref_titik_tengah - (imgOriginal.cols / 2);
 
-				//Error garis kanan
-				else if (colsH[temp_garis - 1] < 0) {//kosong[temp_garis - 1] == 1) {//
-					ref_susur = susurTest; 
-					roadPos = 100 * (1 - ((imgOriginal.cols / 2) - colsH[temp_garis - 1])) / lastLebarJalanH1;
-					ref_titik_tengah = colsH[temp_garis] - ref_susur;
-					line(imgOriginal, Point(ref_titik_tengah, h), Point(ref_titik_tengah, h+20), Scalar(0, 255, 255), 3);
+				Last_ref_titik_tengah = ref_titik_tengah;
+				line(imgOriginal, Point(ref_titik_tengah, h), Point(ref_titik_tengah, 480), Scalar(0, 0, 255), 2);
 
-					error = ref_titik_tengah - imgOriginal.cols / 2;
 
-					cout << "error garis kanan : " << ref_susur << endl;
-				}
+				cout << "error 2 garis : " << (colsH[temp_garis] - colsH[temp_garis - 1]) << endl;
 
-				else if (error < -50 || error >  50) {
-					ref_titik_tengah = Last_ref_titik_tengah;
-					line(imgOriginal, Point(ref_titik_tengah, h), Point(ref_titik_tengah, h), Scalar(255, 255, 0), 3);
+			}
 
-					error = ref_titik_tengah - imgOriginal.cols / 2;
+			//Error Garis Kiri
+			else if (colsH[temp_garis] <= 0) {//kosong[temp_garis] == 1) {//
+				ref_susur = susurTest;
+				roadPos = 100 * ((imgOriginal.cols / 2) - colsH[temp_garis - 1]) / lastLebarJalanH1;
+				ref_titik_tengah = lastLebarJalanH1 - ref_susur + colsH[temp_garis - 1];  //**REVISI**
+				line(imgOriginal, Point(ref_titik_tengah, h), Point(ref_titik_tengah, 450), Scalar(255, 255, 0), 3);
 
-					cout << "error kelebihan : " << error << endl;
-				}
+				error = ref_titik_tengah - imgOriginal.cols / 2;
+
+				cout << "error garis kiri" << ref_susur << endl;
+			}
+
+			//Error garis kanan
+			else if (colsH[temp_garis - 1] < 0) {//kosong[temp_garis - 1] == 1) {//
+				ref_susur = susurTest;
+				roadPos = 100 * (1 - ((imgOriginal.cols / 2) - colsH[temp_garis - 1])) / lastLebarJalanH1;
+				ref_titik_tengah = colsH[temp_garis] - ref_susur;
+				line(imgOriginal, Point(ref_titik_tengah, h), Point(ref_titik_tengah, h + 20), Scalar(0, 255, 255), 3);
+
+				error = ref_titik_tengah - imgOriginal.cols / 2;
+
+				cout << "error garis kanan : " << ref_susur << endl;
+			}
+
+			else if (error < -50 || error >  50) {
+				ref_titik_tengah = Last_ref_titik_tengah;
+				line(imgOriginal, Point(ref_titik_tengah, h), Point(ref_titik_tengah, h), Scalar(255, 255, 0), 3);
+
+				error = ref_titik_tengah - imgOriginal.cols / 2;
+
+				cout << "error kelebihan : " << error << endl;
+			}
 			//}
 			//else {
 			//	//tes algoritm 1 jalur
@@ -1159,7 +1226,7 @@ int main() {
 
 			if (belokH2 == 0) { // tanda hanya ada jalur lurus
 				int koreksiH2 = 0;
-				errorh2 = ((colsH2[temp_garis] + colsH2[temp_garis - 1]) *trackTarget) - 320;
+				errorh2 = ((colsH2[temp_garis] + colsH2[temp_garis - 1]) * trackTarget) - 320;
 				//errorh2 = (errorh2 + koreksiH2) * 250 / lastLebarJalanH1; // konversi 
 			}
 			else if (belokH2 == 1) { // tanda ada belokan ke kiri
@@ -1194,8 +1261,10 @@ int main() {
 
 			//Print nilai error 
 			if (debuggingMode) {
+
 				putText(imgOriginal, "error :" + std::to_string(error), Point(240, h), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
-				putText(imgOriginal, "errorH2 :" + std::to_string(errorh2), Point(240, h - 40), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
+				//putText(imgOriginal, "colsH :" + std::to_string(colsH[temp_garis-1]) + " distToMid: " + std::to_string(320 - colsH[temp_garis - 1]), 
+					//Point(100, h - 40), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 				putText(imgOriginal, "jmlGaris :" + std::to_string(Max_pointcount), Point(240, h - 80), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 				putText(imgOriginal, "LebarJalanH1 :" + std::to_string(lastLebarJalanH1), Point(240, h - 120), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 				putText(imgOriginal, "LebarJalanH2 :" + std::to_string(lebarJalanH2), Point(240, h - 160), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
@@ -1218,24 +1287,30 @@ int main() {
 
 			}
 			else {
-				putText(imgOriginal, "error% :" + std::to_string(int(roadPos)), Point(240, h ), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
-				putText(imgOriginal, "error (px) :" + std::to_string(error), Point(240, h-40), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
-				putText(imgOriginal, "errorH2 (px) :" + std::to_string(errorh2), Point(240, h - 80), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
-				putText(imgOriginal, "jmlGaris (px) :" + std::to_string(Max_pointcount), Point(240, h - 120), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
+				prevDistToMid = distToMid;
+				distToMid = 320 - colsH[temp_garis - 1];
+				if (distToMid > 1500 || distToMid < 10)
+					distToMid = prevDistToMid;
+				//putText(imgOriginal, "error% :" + std::to_string(int(roadPos)), Point(240, h), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
+				//putText(imgOriginal, "error (px) :" + std::to_string(error), Point(240, h - 40), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
+				//putText(imgOriginal, "errorH2 (px) :" + std::to_string(errorh2), Point(240, h - 80), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
+				//putText(imgOriginal, "jmlGaris (px) :" + std::to_string(Max_pointcount), Point(240, h - 120), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
+				putText(imgOriginal, "error (px) :" + std::to_string(distToMid), Point(240, h), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 
 			}
-			
 
-			//putText(imgOriginal, "test :" + std::to_string((error_f)), Point(240, h - 240), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
-			//================================================================================================================================//
 
-			//resize(imgOriginal, imgResized, Size(640, 480));
-			//imshow("imgResized", imgResized);
-			//imshow("Thresholded", imgThresholded);
-			imshow("hsv", hsv1);
-			//imshow("HSV Filter", imgHSV);
+
+
+
+
+
+
+
+
+			//imshow("imgHSV", imgHSV);
 			imshow("hasil Filter", imgHasil);
-			//imshow("imgROI", imgThresholded);
+			imshow("imgROI", imgThresholded);
 
 			imshow(" imgOut", imgOriginal);
 			//cout<<(imgHSV).mean()<<endl;
@@ -1248,7 +1323,7 @@ int main() {
 			char key = waitKey(33);
 			if (key == 27) { break; }
 		}
-		
+
 	}
 	destroyAllWindows();
 	return 0;
