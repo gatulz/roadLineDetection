@@ -31,11 +31,18 @@ using namespace std;
 
 // ========== VARIABEL FILTER HSV ==========
 
-int HLow = 10;// 230;
-int HHigh = 52;
-int SLow = 23;// 10;
-int SHigh = 255;// 70; //nilai jenis pixel berwarna(255) atau hitam putih(0)
-int VLow = 55;// 90;// 127;// 180;// 236; 180 156
+//int HLow = 10;// 230;
+//int HHigh = 52;
+//int SLow = 23;// 10;
+//int SHigh = 255;// 70; //nilai jenis pixel berwarna(255) atau hitam putih(0)
+//int VLow = 55;// 90;// 127;// 180;// 236; 180 156
+//int VHigh = 255;
+
+int HLow = 0;// 230;
+int HHigh = 255;
+int SLow = 0;
+int SHigh = 70; //nilai jenis pixel berwarna(255) atau hitam putih(0)
+int VLow = 180;// 236; 180 156
 int VHigh = 255;
 int bb1 = 60;
 int bb2 = 123;
@@ -265,11 +272,11 @@ int main() {
 	//NAMAFILE
 	//VideoCapture cap("23juli/ERROR0_2.mp4"); 
 	//VideoCapture cap("23juli/jalan_4_lurus.mp4");
-	//VideoCapture cap("video/23agus/lurus_kanan3.mp4");
+	VideoCapture cap("video/23agus/lurus_kanan2.mp4");
 	//VideoCapture cap("video/23agus/kiri1.mp4");
 	//VideoCapture cap("4agus/maju_lurus_1.mp4");
 	//VideoCapture cap("29juli2/jalan2.mp4");//miringkanan_2.mp4"); //Video bagus dari yutup
-	VideoCapture cap("kuning3.mp4");
+	//VideoCapture cap("kuning3.mp4");
 
 
 	// ----- akses video streaming -----//
@@ -284,7 +291,7 @@ int main() {
 	cap.set(CAP_PROP_FRAME_HEIGHT, frame_height);// 480);
 
 	// ----- membuat video output ------ //NAMAFILE
-	VideoWriter video("4agus.avi", CV_FOURCC('M', 'J', 'P', 'G'), 30, Size(frame_width, frame_height));	//extra
+	VideoWriter video("target50.avi", CV_FOURCC('M', 'J', 'P', 'G'), 30, Size(frame_width, frame_height));	//extra
 
 	while (1) {
 		Mat imgFrame;
@@ -292,9 +299,9 @@ int main() {
 		cap >> imgFrame;
 		//------- Akses Gambar -----
 		//imgFrame = imread("kuning_gelap4.jpg");
-
+		//fps
 		i++;
-		i %= 3;
+		i %= 4;
 		if (i == 0) { //setiap 5 frame
 
 			// resize gambar agar ukuran 640x480
@@ -1158,7 +1165,7 @@ int main() {
 				}
 				ref_titik_tengah = colsH[temp_garis - 1] + ((colsH[temp_garis] - colsH[temp_garis - 1]) * trackTarget);
 
-				roadPos = 100 * ((imgOriginal.cols / 2) - colsH[temp_garis - 1]) / lastLebarJalanH1;
+				roadPos = 1000 * (320 - colsH[temp_garis - 1]) / lastLebarJalanH1;
 
 				ref_susur = colsH[temp_garis] - ref_titik_tengah;
 				if (susurTest == 0)
@@ -1179,7 +1186,7 @@ int main() {
 			//Error Garis Kiri
 			else if (colsH[temp_garis] <= 0) {//kosong[temp_garis] == 1) {//
 				ref_susur = susurTest;
-				roadPos = 100 * ((imgOriginal.cols / 2) - colsH[temp_garis - 1]) / lastLebarJalanH1;
+				roadPos = 1000 * (320 - colsH[temp_garis - 1]) / lastLebarJalanH1;
 				ref_titik_tengah = lastLebarJalanH1 - ref_susur + colsH[temp_garis - 1];  //**REVISI**
 				line(imgOriginal, Point(ref_titik_tengah, h), Point(ref_titik_tengah, 450), Scalar(255, 255, 0), 3);
 
@@ -1191,7 +1198,7 @@ int main() {
 			//Error garis kanan
 			else if (colsH[temp_garis - 1] < 0) {//kosong[temp_garis - 1] == 1) {//
 				ref_susur = susurTest;
-				roadPos = 100 * (1 - ((imgOriginal.cols / 2) - colsH[temp_garis - 1])) / lastLebarJalanH1;
+				roadPos = 1000 - 1000 * ((colsH[temp_garis] - 320)) / lastLebarJalanH1;
 				ref_titik_tengah = colsH[temp_garis] - ref_susur;
 				line(imgOriginal, Point(ref_titik_tengah, h), Point(ref_titik_tengah, h + 20), Scalar(0, 255, 255), 3);
 
@@ -1240,6 +1247,7 @@ int main() {
 			}
 
 			// Print Data
+			cout << "pos(%) = " << roadPos << endl;
 			cout << "error = " << error << endl;
 			cout << "errorh2 = " << errorh2 << endl;
 			cout << regB[temp_garis - 1] << "\t" << regB[temp_garis] << endl;
@@ -1269,9 +1277,8 @@ int main() {
 				putText(imgOriginal, "LebarJalanH1 :" + std::to_string(lastLebarJalanH1), Point(240, h - 120), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 				putText(imgOriginal, "LebarJalanH2 :" + std::to_string(lebarJalanH2), Point(240, h - 160), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 				putText(imgOriginal, "susurTestH1 :" + std::to_string(susurTest), Point(240, h - 200), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
-
 				putText(imgOriginal, "ref_tengah :" + std::to_string(ref_titik_tengah), Point(240, h - 240), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
-				putText(imgOriginal, "error% :" + std::to_string(int(roadPos)), Point(240, h - 280), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
+				putText(imgOriginal, "error% :" + std::to_string(int(roadPos*10)), Point(240, h - 280), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 				//putText(imgOriginal, std::to_string(colsH[1]), Point(80, h - 120), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 				//putText(imgOriginal, std::to_string(colsH[2]), Point(160, h - 120), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 				//putText(imgOriginal, std::to_string(colsH[3]), Point(240, h - 120), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
@@ -1291,22 +1298,15 @@ int main() {
 				distToMid = 320 - colsH[temp_garis - 1];
 				if (distToMid > 1500 || distToMid < 10)
 					distToMid = prevDistToMid;
-				//putText(imgOriginal, "error% :" + std::to_string(int(roadPos)), Point(240, h), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
-				//putText(imgOriginal, "error (px) :" + std::to_string(error), Point(240, h - 40), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
-				//putText(imgOriginal, "errorH2 (px) :" + std::to_string(errorh2), Point(240, h - 80), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
+				putText(imgOriginal, "pos% :" + std::to_string(int(roadPos)), Point(240, h), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
+				putText(imgOriginal, "error (px) :" + std::to_string(error), Point(240, h - 40), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
+				putText(imgOriginal, "errorH2 (px) :" + std::to_string(errorh2), Point(240, h - 80), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
+				/*putText(imgOriginal, "ka :" + std::to_string(colsH[temp_garis]) + " pos " + std::to_string( lastLebarJalanH1),
+					Point(100, h - 120), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);*/
 				//putText(imgOriginal, "jmlGaris (px) :" + std::to_string(Max_pointcount), Point(240, h - 120), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
-				putText(imgOriginal, "error (px) :" + std::to_string(distToMid), Point(240, h), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
+				//putText(imgOriginal, "error (px) :" + std::to_string(distToMid), Point(240, h), FONT_HERSHEY_PLAIN, 2, cv::Scalar(0, 0, 0), 2, LINE_AA);
 
 			}
-
-
-
-
-
-
-
-
-
 
 			//imshow("imgHSV", imgHSV);
 			imshow("hasil Filter", imgHasil);
